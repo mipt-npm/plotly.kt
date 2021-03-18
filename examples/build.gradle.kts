@@ -24,6 +24,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 val copyPlotlyResources by tasks.creating(Copy::class){
     dependsOn(":plotlykt-core:jvmProcessResources")
     from(project(":plotlykt-core").buildDir.resolve("processedResources/jvm"))
+    dependsOn(":plotlykt-server:jvmProcessResources")
+    from(project(":plotlykt-server").buildDir.resolve("processedResources/jvm"))
     into(buildDir.resolve("resources"))
 }
 

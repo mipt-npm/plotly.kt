@@ -23,7 +23,7 @@ dependencies {
 
 javafx{
     modules("javafx.web")
-    version = "16"
+    version = "11"
 }
 
 application {

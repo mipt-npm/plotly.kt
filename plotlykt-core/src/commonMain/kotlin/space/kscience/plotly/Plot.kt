@@ -61,6 +61,8 @@ public class Plot(
     }
 
     override fun toMeta(): Meta = config
+
+    override fun toString(): String = "Plot[${hashCode().toUInt()}"
 }
 
 private fun Plot.toJson(): JsonObject = buildJsonObject {

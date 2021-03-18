@@ -17,9 +17,9 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 fun serve(scale: ObservableIntegerValue) = Plotly.serve(port = 7778) {
-    embedData = true //Should be set this way to avoid FX browser bug
+    embedData = false //Should be set this way to avoid FX browser bug
 
-    page("Static") {
+    page("Static") {container ->
         val x = (0..100).map { it.toDouble() / 100.0 }.toDoubleArray()
         val y1 = x.map { sin(2.0 * PI * it) }.toDoubleArray()
         val y2 = x.map { cos(2.0 * PI * it) }.toDoubleArray()
@@ -29,7 +29,7 @@ fun serve(scale: ObservableIntegerValue) = Plotly.serve(port = 7778) {
         val trace2 = Trace(x, y2) {
             name = "cos"
         }
-        plot {//static plot
+        plot (renderer = container){//static plot
             traces(trace1, trace2)
             layout {
                 title = "First graph, row: 1, size: 8/12"

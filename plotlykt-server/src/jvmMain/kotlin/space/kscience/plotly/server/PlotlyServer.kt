@@ -22,11 +22,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.html.*
+import kotlinx.serialization.json.Json
 import space.kscience.dataforge.meta.*
 import space.kscience.dataforge.names.Name
 import space.kscience.dataforge.names.toName
 import space.kscience.plotly.*
 import space.kscience.plotly.server.PlotlyServer.Companion.DEFAULT_PAGE
+import space.kscience.plotly.server.PlotlyServerConstants.OUTPUT_CLASS
+import space.kscience.plotly.server.PlotlyServerConstants.OUTPUT_DATA_ATTRIBUTE
+import space.kscience.plotly.server.PlotlyServerConstants.OUTPUT_NAME_ATTRIBUTE
+import space.kscience.plotly.server.PlotlyServerConstants.OUTPUT_PUSH_ATTRIBUTE
+import space.kscience.plotly.server.PlotlyServerConstants.PLOTLY_CONFIG_CLASS
+import space.kscience.plotly.server.PlotlyServerConstants.PLOTLY_DATA_CLASS
 import java.awt.Desktop
 import java.net.URI
 import kotlin.collections.set
@@ -46,66 +53,47 @@ private class ServerPlotlyRenderer(
 ) : PlotlyRenderer {
     override fun FlowContent.renderPlot(plot: Plot, plotId: String, config: PlotlyConfig): Plot {
         plotCallback(plotId, plot)
-        div {
+        div(OUTPUT_CLASS) {
             id = plotId
+            attributes[OUTPUT_NAME_ATTRIBUTE] = id
+
+            if (embedData) {
+                script {
+                    attributes["class"] = PLOTLY_DATA_CLASS
+                    unsafe {
+                        +Json.encodeToString(MetaSerializer, plot.config)
+                    }
+                }
+                script {
+                    attributes["class"] = PLOTLY_CONFIG_CLASS
+                    unsafe {
+                        +Json.encodeToString(MetaSerializer, config.toMeta())
+                    }
+                }
+            }
 
             val dataUrl = baseUrl.copy(
                 encodedPath = baseUrl.encodedPath + "/data/$plotId"
             )
-            script {
-                if (embedData) {
-                    unsafe {
-                        //language=JavaScript
-                        +"""
 
-                    makePlot(
-                        '$plotId',
-                        ${plot.data.toJsonString()},
-                        ${plot.layout.toJsonString()},
-                        $config
-                    );
+            attributes[OUTPUT_DATA_ATTRIBUTE] = dataUrl.toString()
 
-
-                    """.trimIndent()
-                    }
-                } else {
-                    unsafe {
-                        //language=JavaScript
-                        +"\n    createPlotFrom('$plotId','$dataUrl', $config);\n"
-                    }
-                }
-
-                // starting plot updates if required
-                when (updateMode) {
-                    PlotlyUpdateMode.PUSH -> {
-                        val wsUrl = baseUrl.copy(
-                            protocol = URLProtocol.WS,
-                            encodedPath = baseUrl.encodedPath + "/ws/$plotId"
-                        )
-                        unsafe {
-                            //language=JavaScript
-                            +"\n    startPush('$plotId', '$wsUrl');\n"
-                        }
-                    }
-                    PlotlyUpdateMode.PULL -> {
-                        unsafe {
-                            //language=JavaScript
-                            +"\n    startPull('$plotId', '$dataUrl', ${updateInterval});\n"
-                        }
-                    }
-                    PlotlyUpdateMode.NONE -> {
-                        //do nothing
-                    }
-                }
+            if (updateMode == PlotlyUpdateMode.PUSH) {
+                val wsUrl = baseUrl.copy(
+                    protocol = URLProtocol.WS,
+                    encodedPath = baseUrl.encodedPath + "/ws/$plotId"
+                )
+                attributes[OUTPUT_PUSH_ATTRIBUTE] = wsUrl.toString()
             }
         }
         return plot
     }
-
 }
 
-public class PlotlyServer internal constructor(private val routing: Routing, private val rootRoute: String) :
-    Configurable {
+public class PlotlyServer internal constructor(
+    private val routing: Routing,
+    private val rootRoute: String,
+) : Configurable {
     override val config: Config = Config()
     public var updateMode: PlotlyUpdateMode by config.enum(PlotlyUpdateMode.NONE, key = UPDATE_MODE_KEY)
     public var updateInterval: Long by config.long(300, key = UPDATE_INTERVAL_KEY)
@@ -186,11 +174,7 @@ public class PlotlyServer internal constructor(private val routing: Routing, pri
                                 }
                                 script {
                                     type = "text/javascript"
-                                    src = "${normalizedRoute}js/plotly.min.js"
-                                }
-                                script {
-                                    type = "text/javascript"
-                                    src = "${normalizedRoute}js/plotlyConnect.js"
+                                    src = "${normalizedRoute}js/plotlykt.js"
                                 }
                             }
                             title(title)
@@ -251,9 +235,7 @@ public fun Application.plotlyModule(route: String = DEFAULT_PAGE): PlotlyServer 
     routing {
         route(route) {
             static {
-                resource("js/plotly.min.js")
-                resource("js/plotlyConnect.js")
-                //resources()
+                resource("js/plotlykt.js")
             }
         }
     }

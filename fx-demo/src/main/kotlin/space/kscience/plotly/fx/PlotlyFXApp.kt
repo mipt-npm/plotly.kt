@@ -34,6 +34,7 @@ class PlotlyView : View("Hello PlotlyFX") {
                     engine.loadWorker.exceptionProperty().onChange {
                         log.severe(it?.stackTraceToString())
                     }
+
                     engine.loadWorker.workDoneProperty().onChange {
                         log.info("Work done: $it")
                     }
@@ -41,6 +42,7 @@ class PlotlyView : View("Hello PlotlyFX") {
                     engine.setOnError {
                         log.warning(it.message)
                     }
+
                     engine.setOnAlert {
                         log.info(it.data)
                     }

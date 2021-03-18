@@ -44,6 +44,7 @@ public final class space/kscience/plotly/Plot : space/kscience/dataforge/meta/Co
 	public final fun getData ()Ljava/util/List;
 	public final fun getLayout ()Lspace/kscience/plotly/models/Layout;
 	public fun toMeta ()Lspace/kscience/dataforge/meta/Meta;
+	public fun toString ()Ljava/lang/String;
 	public final fun traces (Ljava/util/Collection;)V
 	public final fun traces ([Lspace/kscience/plotly/models/Trace;)V
 }

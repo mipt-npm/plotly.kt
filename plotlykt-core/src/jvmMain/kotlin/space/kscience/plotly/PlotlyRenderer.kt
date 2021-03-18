@@ -6,7 +6,7 @@ public interface PlotlyRenderer {
     public fun FlowContent.renderPlot(
         plot: Plot,
         plotId: String = plot.toString(),
-        config: PlotlyConfig = PlotlyConfig()
+        config: PlotlyConfig = PlotlyConfig(),
     ): Plot
 }
 
@@ -36,19 +36,19 @@ public object StaticPlotlyRenderer : PlotlyRenderer {
 
 public fun FlowContent.plot(
     plot: Plot,
-    plotId: String = plot.toString(),
+    plotId: String? = null,
     config: PlotlyConfig = PlotlyConfig(),
-    renderer: PlotlyRenderer = StaticPlotlyRenderer
+    renderer: PlotlyRenderer = StaticPlotlyRenderer,
 ): Plot = with(renderer) {
-    renderPlot(plot, plotId, config)
+    renderPlot(plot, plotId ?: "Plot[${plot.hashCode()}]", config)
 }
 
 public fun FlowContent.plot(
     plotId: String? = null,
     config: PlotlyConfig = PlotlyConfig(),
     renderer: PlotlyRenderer = StaticPlotlyRenderer,
-    builder: Plot.() -> Unit
+    builder: Plot.() -> Unit,
 ): Plot {
     val plot = Plot().apply(builder)
-    return plot(plot, plotId ?: plot.toString(), config, renderer)
+    return plot(plot, plotId, config, renderer)
 }

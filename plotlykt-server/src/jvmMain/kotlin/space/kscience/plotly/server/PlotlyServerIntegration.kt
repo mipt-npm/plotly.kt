@@ -5,7 +5,6 @@ import org.jetbrains.kotlinx.jupyter.api.annotations.JupyterLibrary
 import org.jetbrains.kotlinx.jupyter.api.libraries.*
 import org.slf4j.LoggerFactory
 import space.kscience.plotly.*
-import space.kscience.plotly.Plotly.PLOTLY_CDN
 
 @JupyterLibrary
 internal class PlotlyServerIntegration : JupyterIntegration() {
@@ -13,11 +12,7 @@ internal class PlotlyServerIntegration : JupyterIntegration() {
 
     private val plotlyBundle = ResourceFallbacksBundle(listOf(
         org.jetbrains.kotlinx.jupyter.api.libraries.ResourceLocation(
-            PLOTLY_CDN,
-            ResourcePathType.URL
-        ),
-        org.jetbrains.kotlinx.jupyter.api.libraries.ResourceLocation(
-            "js/plotly.min.js",
+            "js/plotlykt.js",
             ResourcePathType.CLASSPATH_PATH
         )
     ))
@@ -25,23 +20,11 @@ internal class PlotlyServerIntegration : JupyterIntegration() {
     private val plotlyResource =
         LibraryResource(name = "plotly", type = ResourceType.JS, bundles = listOf(plotlyBundle))
 
-    private val plotlyConnectBundle = ResourceFallbacksBundle(listOf(
-        org.jetbrains.kotlinx.jupyter.api.libraries.ResourceLocation(
-            "js/plotlyConnect.js",
-            ResourcePathType.CLASSPATH_PATH
-        )
-    ))
-
-    private val plotlyConnectResource =
-        LibraryResource(name = "plotlyConnect", type = ResourceType.JS, bundles = listOf(plotlyConnectBundle))
-
     val port = System.getProperty("kscience.plotly.port")?.toInt() ?: 8882
 
     @UnstablePlotlyAPI
     override fun Builder.onLoaded() {
-
         resource(plotlyResource)
-        resource(plotlyConnectResource)
 
         repositories("https://repo.kotlin.link")
 

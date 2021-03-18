@@ -1,7 +1,5 @@
 package space.kscience.plotly.server
 
-import io.ktor.application.Application
-import io.ktor.application.ApplicationStarted
 import io.ktor.application.install
 import io.ktor.application.log
 import io.ktor.features.CORS
